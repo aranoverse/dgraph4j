@@ -18,6 +18,7 @@ package io.dgraph;
 import io.dgraph.DgraphProto.Operation;
 import io.dgraph.DgraphProto.TxnContext;
 import io.dgraph.DgraphProto.Version;
+import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
@@ -78,10 +79,10 @@ public class DgraphClient {
     Metadata metadata = new Metadata();
     metadata.put(
         Metadata.Key.of(gRPC_AUTHORIZATION_HEADER_NAME, Metadata.ASCII_STRING_MARSHALLER), apiKey);
-    return MetadataUtils.attachHeaders(
-        DgraphGrpc.newStub(
-            ManagedChannelBuilder.forAddress(gRPCAddress, 443).useTransportSecurity().build()),
-        metadata);
+    Channel channel =
+        ManagedChannelBuilder.forAddress(gRPCAddress, 443).useTransportSecurity().build();
+    return DgraphGrpc.newStub(channel)
+        .withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
   /**
